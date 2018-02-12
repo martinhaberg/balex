@@ -13,30 +13,55 @@ from pypower.api import *
 
 def solve_subproblem(area, exchange_demand):
     if area == 'NO1':
-        print('Area NO1 recognized. Running 9 bus')
+        print('Area', area,' recognized. Running 9 bus')
         ppc = loadcase(case9())
-        print('case loaded')
-        extnode = 1
-        exchange = exchange_demand[0]
+        neighbours = ['NO2']
+        extnode = {'NO2': 1}
 
-        ppopt = ppoption(VERBOSE = 0)
+    elif area == 'NO2':
+        print('Area', area,' recognized. Running 9 bus')
+        ppc = loadcase(case9())
+        neighbours = ['NO1', 'NO5']
+        extnode = {'NO1': 2, 'NO5': 9}
 
-        # Add exchange to active power demand
-        ppc['bus'][extnode-1][2] += exchange
-
-        r = rundcopf(ppc, ppopt)
-        cost = r['f']
-        # Nodal price in exchange node
-        lambda_exchange = r['mu']['lin']['u'][extnode-1]
-        sigma = cost - exchange*lambda_exchange
-        return sigma, lambda_exchange
-    
+    elif area == 'NO5':
+        print('Area', area,' recognized. Running 9 bus')
+        ppc = loadcase(case9())
+        neighbours = ['NO2']
+        extnode = {'NO2': 3}
 
     else:
-        print('Area not recognized, using case 9')
-        ppc = case9()
-        exchange = 0
+        return None, None, None
 
-    #ppopt = ppoption(verbose=VERBOSE)
-    #, ppopt)
-    return None, None
+    ppopt = ppoption(OUT_ALL = 0, VERBOSE = 0)
+
+    for neighbour in neighbours:
+        ppc['bus'][extnode[neighbour]-1][2] += exchange_demand[area,neighbour]
+    # Add exchange to active power demand
+    # for i in range(len(neigbours)):
+    #     ppc['bus'][extnode[i]-1][2] += exchange[i]
+
+    r = rundcopf(ppc, ppopt)
+    cost = r['f']
+
+    # Nodal price in exchange node
+    sigma = cost
+    lambda_exchange = {}
+
+    for neigbour in neighbours:
+        # Round not necessary
+        lambda_exchange[area, neigbour] = round(r['mu']['lin']['u'][extnode[neigbour]-1])
+        sigma -= exchange_demand[area, neigbour] * lambda_exchange[area, neigbour]
+    # for i in range(len(extnode)):
+    #
+    #     lambda_exchange.append(r['mu']['lin']['u'][extnode[i]-1])
+    #     sigma -= exchange[i]*lambda_exchange[i]
+
+
+
+
+    print('Balancing cost:', cost)
+    # print('Marginal exchange cost:', lambda_exchange)
+    # print('Cost at origin:', sigma)
+
+    return sigma, lambda_exchange, cost

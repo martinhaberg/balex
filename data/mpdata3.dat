@@ -11,8 +11,8 @@ set CUTS := 1 ;
 
 param : ExchangeCapacity :=
 NO1 NO2 1
-NO2 NO1 6
-NO2 NO5 2
+NO2 NO1 10
+NO2 NO5 5
 NO5 NO2 3;
 
 param : Imbalance :=

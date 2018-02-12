@@ -1,5 +1,8 @@
 from pyomo.environ import *
+from pyomo.core import Objective
 from subproblem import solve_subproblem
+from pyomo.opt import SolverFactory
+import matplotlib.pyplot as plt
 
 model = AbstractModel()
 
@@ -31,7 +34,7 @@ model.ExchangeCapacity = Param(model.ARCS)
 model.Imbalance = Param(model.AREAS)
 
 # Declare variables
-model.AreaCost = Var(model.AREAS)#, within=NonNegativeReals)
+model.AreaCost = Var(model.AREAS, within=NonNegativeReals)
 model.AreaActivation = Var(model.AREAS)#, within=NonNegativeReals)
 model.Exchange = Var(model.ARCS)#, within=NonNegativeReals)
 
@@ -62,30 +65,72 @@ model.area_coupling = Constraint(model.ARCS, rule=area_coupling_rule)
 model.optimality_cuts = ConstraintList()
 
 
-instance = model.create_instance("mpdata3.dat")
-exchange_vector = [0, 0, 0, 0]
-converged = 0
-while converged <= 4:
-    for a in instance.AREAS:
-        cut_origin, cut_slope = solve_subproblem(a, exchange_vector)
 
+# Create model instance
+instance = model.create_instance("data/mpdata3.dat")
+solver = SolverFactory('gurobi')
+
+# Solve model instance
+result = solver.solve(instance)
+instance.solutions.load_from(result)
+print('MP solved')
+
+# Initialize parameters
+iteration = 0
+exchange_suggestion = {}
+lower_bound = []
+upper_bound = []
+max_iterations = 10
+
+while iteration < max_iterations:
+    ub = 0
+    print("\nIteration:", iteration)
+    for a in instance.AREAS:
+        print("")
+        # Extract exchange suggestions
+        for n in instance.NodesOut[a]:
+            exchange_suggestion[a, n] = instance.Exchange[a, n].value
+            print(a, n, exchange_suggestion[a, n])
+
+
+        # Solve one-area problem, generate cut
+        cut_origin, cut_slope, cost = solve_subproblem(a, exchange_suggestion)
+        ub += cost
+        print("ub", ub)
+        # Add cut to constraint list in master problem
         if cut_origin != None:
             print('Adding cut')
             expr = 0
             for n in instance.NodesOut[a]:
-                expr += cut_origin - cut_slope*instance.Exchange[a, n]
+                expr += instance.AreaCost[a] - cut_origin - \
+                        cut_slope[a, n]*instance.Exchange[a, n]
             instance.optimality_cuts.add(expr >= 0)
-        # Solve one-area problem
-        # Generate cut
-        # Add cut to constraint list in master problem
+
+
+
         pass
-    # Update upper bound
+    # Update upper bound - likely error here
+    if iteration > 0 and ub > upper_bound[iteration-1]:
+        upper_bound.append(upper_bound[iteration-1])
+    else:
+        upper_bound.append(ub)
+
     # Solve master problem
+    print("\nSolving master problem")
+    result = solver.solve(instance)#, tee=True)
+    instance.solutions.load_from(result)
+    print(instance.objective())
+
     # Update lower bound
+    lower_bound.append(instance.objective())
+    # print(instance.objective.Value)
+    # print(result)
     # Compare upper and lower bounds to check convergence
     pass
-    converged += 1
+    iteration += 1
 
-# solver = SolverFactory('ipopt')
-# result = solver.solve(instance)#, tee=True)
-# instance.display()
+plt.plot(range(max_iterations), lower_bound, range(max_iterations), upper_bound)
+plt.ylabel('Total balancing cost')
+plt.show()
+#
+#
