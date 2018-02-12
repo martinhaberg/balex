@@ -1,0 +1,41 @@
+set AREAS := NO1 NO2 NO5 ;
+
+set ARCS :=
+NO1 NO2
+NO1 NO5
+NO2 NO1
+NO2 NO5
+NO5 NO1
+NO5 NO2
+;
+
+set CUTS := 1 ;
+
+param : ExchangeCapacity :=
+NO1 NO2 1
+NO1 NO5 5
+NO2 NO1 6
+NO2 NO5 2
+NO5 NO1 1
+NO5 NO2 3;
+
+param : Imbalance :=
+NO1 38
+NO2 120
+NO5 189
+;
+
+param : CutOrigin :=
+NO1 1 200
+NO2 1 400
+NO5 1 600
+;
+
+param : CutSlope :=
+NO1 NO2 1 40
+NO1 NO5 1 42
+NO2 NO1 1 28
+NO2 NO5 1 26
+NO5 NO1 1 38
+NO5 NO2 1 36
+;
