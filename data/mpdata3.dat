@@ -1,22 +1,22 @@
-set AREAS := NO1 NO2 NO5 ;
+set AREAS := NO1 NO2 SE3 ;
 
 set ARCS :=
 NO1 NO2
+NO1 SE3
 NO2 NO1
-NO2 NO5
-NO5 NO2
+SE3 NO1
 ;
 
 set CUTS := 1 ;
 
 param : ExchangeCapacity :=
-NO1 NO2 1
-NO2 NO1 10
-NO2 NO5 5
-NO5 NO2 3;
+NO1 NO2 10
+NO1 SE3 50
+NO2 NO1 150
+SE3 NO1 150;
 
 param : Imbalance :=
 NO1 38
 NO2 120
-NO5 189
+SE3 189
 ;

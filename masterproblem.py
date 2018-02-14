@@ -81,6 +81,7 @@ exchange_suggestion = {}
 lower_bound = []
 upper_bound = []
 max_iterations = 10
+tolerance = 0.1
 
 while iteration < max_iterations:
     ub = 0
@@ -89,21 +90,24 @@ while iteration < max_iterations:
         print("")
         # Extract exchange suggestions
         for n in instance.NodesOut[a]:
-            exchange_suggestion[a, n] = instance.Exchange[a, n].value
-            print(a, n, exchange_suggestion[a, n])
+            if iteration == 0:
+                exchange_suggestion[a, n] = 0 # initial SP solution at origin
+            else:
+                exchange_suggestion[a, n] = instance.Exchange[a, n].value
+            print(a,'-', n, exchange_suggestion[a, n])
 
 
         # Solve one-area problem, generate cut
         cut_origin, cut_slope, cost = solve_subproblem(a, exchange_suggestion)
         ub += cost
-        print("ub", ub)
+        # print("ub", ub)
         # Add cut to constraint list in master problem
         if cut_origin != None:
-            print('Adding cut')
-            expr = 0
+
+            expr = instance.AreaCost[a] - cut_origin
             for n in instance.NodesOut[a]:
-                expr += instance.AreaCost[a] - cut_origin - \
-                        cut_slope[a, n]*instance.Exchange[a, n]
+                expr -= cut_slope[a, n]*instance.Exchange[a, n]
+
             instance.optimality_cuts.add(expr >= 0)
 
 
@@ -117,20 +121,21 @@ while iteration < max_iterations:
 
     # Solve master problem
     print("\nSolving master problem")
-    result = solver.solve(instance)#, tee=True)
+    result = solver.solve(instance)
     instance.solutions.load_from(result)
     print(instance.objective())
+    # instance.display()
 
     # Update lower bound
     lower_bound.append(instance.objective())
-    # print(instance.objective.Value)
-    # print(result)
-    # Compare upper and lower bounds to check convergence
-    pass
-    iteration += 1
 
-plt.plot(range(max_iterations), lower_bound, range(max_iterations), upper_bound)
+    # Compare upper and lower bounds to check convergence
+    if upper_bound[iteration] <= lower_bound[iteration] + tolerance:
+        break
+    else:
+        iteration += 1
+
+# Plot bounds
+plt.plot(range(len(lower_bound)), lower_bound, range(len(upper_bound)), upper_bound)
 plt.ylabel('Total balancing cost')
 plt.show()
-#
-#

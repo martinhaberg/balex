@@ -1,0 +1,22 @@
+
+Gurobi 7.0.2 (win64, Python) logging started 02/13/18 14:29:52
+
+Read LP format model from file C:\Users\martihab\AppData\Local\Temp\tmp_g7mgf0s.pyomo.lp
+Reading time = 0.00 seconds
+x11: 24 rows, 11 columns, 46 nonzeros
+Optimize a model with 24 rows, 11 columns and 46 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 4e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 8e+03]
+Presolve removed 15 rows and 6 columns
+Presolve time: 0.00s
+Presolved: 9 rows, 5 columns, 21 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    1.6061003e+04   4.038013e+02   0.000000e+00      0s
+       7    1.9642187e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 7 iterations and 0.00 seconds
+Optimal objective  1.964218740e+04
