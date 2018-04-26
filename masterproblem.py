@@ -2,7 +2,7 @@ from pyomo.environ import *
 from pyomo.core import Objective
 from subproblem import solve_subproblem
 from pyomo.opt import SolverFactory
-import matplotlib.pyplot as plt
+from plots import plot_bounds, plot_network, plot_exchange_suggestion
 
 model = AbstractModel()
 
@@ -59,10 +59,9 @@ def area_coupling_rule(m,a,n):
     return m.Exchange[a,n] + m.Exchange [n,a] == 0
 model.area_coupling = Constraint(model.ARCS, rule=area_coupling_rule)
 
-# def optimality_cuts_rule(m, a, k):
-#     return m.AreaCost[a] >= m.CutOrigin[a,k] + sum(m.CutSlope[a,n,k]*m.Exchange[a,n] for n in m.NodesOut[a])
-# model.optimality_cuts = Constraint(model.AREAS, model.CUTS, rule=optimality_cuts_rule)
+# Optimality cut expressions are generated iteratively
 model.optimality_cuts = ConstraintList()
+
 
 
 
@@ -80,23 +79,26 @@ iteration = 0
 exchange_suggestion = {}
 lower_bound = []
 upper_bound = []
-max_iterations = 10
+exchange_suggestion_history = {('NO1', 'SE3'): [], ('NO1', 'NO2'): []}
+max_iterations = 8
 tolerance = 0.1
 
+# Iterative solution procedure
 while iteration < max_iterations:
     ub = 0
     print("\nIteration:", iteration)
     for a in instance.AREAS:
-        print("")
+        #print("")
         # Extract exchange suggestions
         for n in instance.NodesOut[a]:
             if iteration == 0:
                 exchange_suggestion[a, n] = 0 # initial SP solution at origin
             else:
                 exchange_suggestion[a, n] = instance.Exchange[a, n].value
-            print(a,'-', n, exchange_suggestion[a, n])
 
+            #print(a,'-', n, exchange_suggestion[a, n])
 
+        
         # Solve one-area problem, generate cut
         cut_origin, cut_slope, cost = solve_subproblem(a, exchange_suggestion)
         ub += cost
@@ -109,6 +111,11 @@ while iteration < max_iterations:
                 expr -= cut_slope[a, n]*instance.Exchange[a, n]
 
             instance.optimality_cuts.add(expr >= 0)
+            #print(instance.optimality_cuts)
+    
+    # Save exchange suggestions
+    for corr in exchange_suggestion_history.keys():
+        exchange_suggestion_history[corr].append(exchange_suggestion[corr])
 
 
 
@@ -118,13 +125,17 @@ while iteration < max_iterations:
         upper_bound.append(upper_bound[iteration-1])
     else:
         upper_bound.append(ub)
-
+        print(upper_bound)
+        
+    # Plot exchange solution
+    plot_network(exchange_suggestion)
+    
     # Solve master problem
     print("\nSolving master problem")
     result = solver.solve(instance)
     instance.solutions.load_from(result)
-    print(instance.objective())
-    # instance.display()
+    print("LB: ", round(instance.objective()))
+    instance.display()
 
     # Update lower bound
     lower_bound.append(instance.objective())
@@ -136,6 +147,6 @@ while iteration < max_iterations:
         iteration += 1
 
 # Plot bounds
-plt.plot(range(len(lower_bound)), lower_bound, range(len(upper_bound)), upper_bound)
-plt.ylabel('Total balancing cost')
-plt.show()
+plot_bounds(lower_bound, upper_bound)
+# Plot exchange suggestion
+# plot_exchange_suggestion(exchange_suggestion_history)

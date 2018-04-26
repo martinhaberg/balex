@@ -42,9 +42,9 @@ def solve_subproblem(area, exchange_demand):
     ppopt = ppoption(OUT_ALL = 0, VERBOSE = 0)
 
     for neighbour in neighbours:
-        print(ppc['bus'][extnode[neighbour]-1][2])
+        #print(ppc['bus'][extnode[neighbour]-1][2])
         ppc['bus'][extnode[neighbour]-1][2] += exchange_demand[area,neighbour]
-        print(ppc['bus'][extnode[neighbour]-1][2])
+        #print(ppc['bus'][extnode[neighbour]-1][2])
     # Add exchange to active power demand
     # for i in range(len(neigbours)):
     #     ppc['bus'][extnode[i]-1][2] += exchange[i]
@@ -65,9 +65,6 @@ def solve_subproblem(area, exchange_demand):
     #
         # lambda_exchange.append(r['mu']['lin']['u'][extnode[i]-1])
         # sigma -= exchange[i]*lambda_exchange[i]
-
-
-
 
     print('Balancing cost:', round(cost))
     print('Marginal exchange cost:', lambda_exchange)
