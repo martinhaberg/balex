@@ -1,0 +1,9 @@
+param:  BIDS:   Cost  Cap :=
+        Lea     1   100
+        MD      1   25
+        Vox     3   20
+        EG      1   5
+        Drums   1   15
+        Bass    1   15
+        Keys    1   5
+        AG      1   1;

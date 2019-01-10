@@ -1,0 +1,27 @@
+param:  BIDS:   Bid_price  Cap Node :=
+        z1a     34         10  1
+        z1b     37   20  4
+        z1c     42   15  8
+        z1d     49   20  10
+        z2a     35   25  40
+        z2b     40   5   42
+        z2c     45   15  46
+        z3a     47   5   72
+        z3b     52   1   73;
+
+set BIDS_1 := z1a z1b z1c z1d;
+set BIDS_2 := z2a z2b z2c ;
+set BIDS_3 := z3a z3b ;
+
+param: AREAS:  Imbalance :=
+      zone1   44
+      zone2   12
+      zone3   21;
+
+
+
+param Flow_cap:
+                zone1 zone2 zone3 :=
+  "zone1"         0     10   15
+  "zone2"         10   0     10
+  "zone3"         15   10     0;

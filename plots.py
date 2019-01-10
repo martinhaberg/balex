@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def plot_bounds(lower_bound, upper_bound):
-    plt.plot(range(len(lower_bound)), lower_bound, 
+    plt.plot(range(len(lower_bound)), lower_bound,
              range(len(upper_bound)), upper_bound)
     plt.ylabel('Total balancing cost')
     plt.xlabel('Iteration')
@@ -17,9 +17,12 @@ def plot_network(exchange):
     # print(exchange)
     locations = {'NO1': [0,0],
                 'NO2': [-1,-1],
-                'SE3': [2,0]}
+                'SE3': [2,0],
+                'zone1': [0,0],
+                'zone2': [1,0],
+                'zone3': [0.7,-0.7]}
 
-    
+
     for arc, flow in exchange.items():
         # print(arc)
         # print(flow)
@@ -30,17 +33,17 @@ def plot_network(exchange):
 
     # Alternatively, use default positioning
     # pos = nx.spring_layout(G)
-    
+
     # Draw graph
     nx.draw(G, pos = locations, with_labels = True)
-    
+
     # Create nicer edge labels
     edge_labels=dict([((u,v,),round(d['weight']))
         for u,v,d in G.edges(data=True)])
-    
+
     # Draw edge labels
     nx.draw_networkx_edge_labels(G, pos = locations, edge_labels = edge_labels)
-    
+
     plt.show()
 
 def plot_exchange_suggestion(history):
@@ -49,7 +52,7 @@ def plot_exchange_suggestion(history):
     print(history)
     print(len(history['NO1','NO2']))
     # print(len(history[0:2]))
-    
+
     plt.plot(range(iterations), history['NO1','NO2'],
              range(iterations), history['NO1','SE3'])
     plt.ylabel('Exchange suggestion (MW)')
@@ -58,6 +61,28 @@ def plot_exchange_suggestion(history):
     plt.legend(['NO1-NO2','NO1-SE3'])
     plt.xticks()
     plt.show()
-    
+
+def plot_gen(opf_result):
+    gen = opf_result['var']['val']['Pg']
+    # for i in load:
+    #     print(i, load[i])
+    n = gen.size
+    # print(n)
+    plt.bar(range(n),gen)
+    plt.show()
+    return None
+
+def plot_load(ppc):
+    load =  ppc['bus'][...,2]
+    # print(load)
+    # for i in load:
+    #     print(i, load[i])
+    n = load.size
+    # print(n)
+    plt.bar(range(n),load)
+    plt.show()
+
+    return None
+
+
 # def plot_cuts():
-    

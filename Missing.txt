@@ -1,0 +1,5 @@
+Missing functionality
+
+Ability to load different case studies
+All relevant plots
+Result variables saved to file?
